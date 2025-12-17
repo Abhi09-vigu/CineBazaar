@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Skeleton loader */
+.skeleton { @apply animate-pulse bg-gray-800 rounded; }
