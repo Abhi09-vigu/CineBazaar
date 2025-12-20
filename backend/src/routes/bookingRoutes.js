@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { auth } from '../middleware/auth.js';
-import { lockSeats, bookSeats, myBookings, cancelBooking } from '../controllers/bookingController.js';
+import { lockSeats, bookSeats, myBookings, cancelBooking, getTicket } from '../controllers/bookingController.js';
 
 const router = Router();
 
@@ -18,5 +18,6 @@ router.post('/book', auth, [
 
 router.get('/me', auth, myBookings);
 router.post('/cancel/:id', auth, cancelBooking);
+router.get('/:id/ticket', auth, getTicket);
 
 export default router;

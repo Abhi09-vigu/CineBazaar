@@ -6,10 +6,11 @@ export default function Navbar() {
   return (
     <header className="border-b border-gray-800 sticky top-0 z-40 backdrop-blur bg-gray-950/70">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-        <Link to="/" className="text-xl font-semibold text-accent-500">CineWave</Link>
+        <Link to="/" className="text-xl font-semibold text-accent-500">CineBazaar</Link>
         <nav className="flex items-center gap-4">
           <Link to="/movies" className="hover:text-accent-400">Movies</Link>
           {user && <Link to="/dashboard" className="hover:text-accent-400">Dashboard</Link>}
+          {user?.role === 'OWNER' && <Link to="/owner" className="hover:text-accent-400">Owner</Link>}
           {user?.role === 'ADMIN' && <Link to="/admin" className="hover:text-accent-400">Admin</Link>}
           {!user ? (
             <>

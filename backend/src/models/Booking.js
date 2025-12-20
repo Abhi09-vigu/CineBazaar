@@ -8,6 +8,7 @@ const bookingSchema = new mongoose.Schema(
     amount: { type: Number, required: true },
     status: { type: String, enum: ['CONFIRMED', 'CANCELLED'], default: 'CONFIRMED' },
     paymentId: { type: String },
+    ticketCode: { type: String, index: true },
     cancelledAt: { type: Date }
   },
   { timestamps: true }

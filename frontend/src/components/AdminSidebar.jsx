@@ -10,10 +10,9 @@ export default function AdminSidebar() {
       <div className="text-xl font-semibold text-accent-500 mb-4">Admin</div>
       <nav className="space-y-1">
         {item('/admin', 'Dashboard')}
-        {item('/admin/add-movie', 'Add Movie')}
-        {item('/admin/manage-movies', 'Manage Movies')}
-        {item('/admin/shows', 'Manage Shows')}
-        {item('/admin/bookings', 'Bookings')}
+        {/* Movie and show management moved to Owner area */}
+        {item('/admin/owners/pending', 'Owner Approvals')}
+        {item('/admin/theaters/pending', 'Theater Approvals')}
       </nav>
     </aside>
   )

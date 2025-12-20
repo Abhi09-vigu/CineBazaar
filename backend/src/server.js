@@ -28,7 +28,20 @@ const start = async () => {
           console.warn('⚠️  Failed to sync Movie indexes:', e?.message || e);
         }
       }
-      app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+      const startServer = (port, attempts = 0) => {
+        const server = app.listen(port, () => console.log(`Server running on port ${port}`));
+        server.on('error', (err) => {
+          if (err && err.code === 'EADDRINUSE' && attempts < 5) {
+            const next = port + 1;
+            console.warn(`Port ${port} in use, retrying on ${next}...`);
+            setTimeout(() => startServer(next, attempts + 1), 300);
+          } else {
+            console.error('Failed to start server:', err?.message || err);
+            process.exit(1);
+          }
+        });
+      };
+      startServer(Number(PORT));
   } catch (err) {
     console.error('Failed to start server:', err?.message || err);
     process.exit(1);
