@@ -30,8 +30,24 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(data.user))
   }
 
+  const loginOwner = async (email, password) => {
+    const { data } = await api.post('/auth/login-owner', { email, password })
+    setToken(data.token)
+    setUser(data.user)
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('user', JSON.stringify(data.user))
+  }
+
   const signup = async (name, email, password) => {
     const { data } = await api.post('/auth/signup', { name, email, password })
+    setToken(data.token)
+    setUser(data.user)
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('user', JSON.stringify(data.user))
+  }
+
+  const signupOwner = async (name, email, password) => {
+    const { data } = await api.post('/auth/signup-owner', { name, email, password })
     setToken(data.token)
     setUser(data.user)
     localStorage.setItem('token', data.token)
@@ -45,7 +61,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user')
   }
 
-  const value = useMemo(() => ({ user, token, login, signup, logout, loading }), [user, token, loading])
+  const value = useMemo(() => ({ user, token, login, loginOwner, signup, signupOwner, logout, loading }), [user, token, loading])
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>
 }
 

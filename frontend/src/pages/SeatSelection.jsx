@@ -16,12 +16,19 @@ export default function SeatSelection() {
 
   const grid = useMemo(() => {
     if (!show) return []
+    const layout = show?.theater?.layout
+    if (Array.isArray(layout) && layout.length) {
+      // Use owner-provided layout: empty string indicates space
+      return layout.map(row => Array.isArray(row?.seats) ? row.seats.map(s => (s ?? '').trim()) : [])
+    }
+    // Fallback to uniform grid if no layout provided
     return Array.from({ length: show.rows }, (_, r) => Array.from({ length: show.cols }, (_, c) => seatId(r, c)))
   }, [show])
 
-  const isBooked = (s) => show?.bookedSeats?.includes(s)
+  const isBooked = (s) => s && show?.bookedSeats?.includes(s)
 
   const toggle = (s) => {
+    if (!s) return // space
     if (isBooked(s)) return
     setSelected(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])
   }
@@ -46,14 +53,19 @@ export default function SeatSelection() {
             <div>
               <h1 className="text-2xl font-bold">Select Seats</h1>
               <div className="text-gray-400">{show.movie.title} • {show.theater.name}</div>
+              <div className="text-gray-500 text-sm">Show: {new Date(show.date).toDateString()} • {show.time}</div>
             </div>
             <div className="space-y-2">
               {grid.map((row, i) => (
                 <div key={i} className="flex justify-center gap-2">
-                  {row.map(s => (
-                    <button key={s} onClick={() => toggle(s)}
-                      className={`w-8 h-8 text-xs rounded flex items-center justify-center border
-                        ${isBooked(s) ? 'bg-gray-700 border-gray-700 text-gray-500 cursor-not-allowed' : selected.includes(s) ? 'bg-accent-500 border-accent-500 text-white' : 'bg-gray-900 border-gray-700 hover:bg-gray-800'}`}>{s}</button>
+                  {row.map((s, j) => (
+                    s ? (
+                      <button key={`${i}-${j}-${s}`} onClick={() => toggle(s)}
+                        className={`w-8 h-8 text-xs rounded flex items-center justify-center border
+                          ${isBooked(s) ? 'bg-gray-700 border-gray-700 text-gray-500 cursor-not-allowed' : selected.includes(s) ? 'bg-accent-500 border-accent-500 text-white' : 'bg-gray-900 border-gray-700 hover:bg-gray-800'}`}>{s}</button>
+                    ) : (
+                      <span key={`${i}-${j}-space`} className="w-8 h-8" />
+                    )
                   ))}
                 </div>
               ))}

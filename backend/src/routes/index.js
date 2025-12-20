@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import authRoutes from './authRoutes.js';
 import adminMovieRoutes from './adminMovieRoutes.js';
+import adminRoutes from './adminRoutes.js';
 import movieRoutes from './movieRoutes.js';
 import theaterRoutes from './theaterRoutes.js';
 import theaterCatalogRoutes from './theaterCatalogRoutes.js';
@@ -12,6 +13,7 @@ const router = Router();
 
 router.use('/auth', authRoutes);
 router.use('/admin', adminMovieRoutes);
+router.use('/admin', adminRoutes);
 router.use('/movies', movieRoutes);
 router.use('/theaters', theaterRoutes);
 router.use('/theater-catalog', theaterCatalogRoutes);

@@ -3,6 +3,7 @@ import { validationResult } from 'express-validator';
 import Show from '../models/Show.js';
 import Booking from '../models/Booking.js';
 import SeatLock from '../models/SeatLock.js';
+import QRCode from 'qrcode';
 
 const seatId = (row, col) => `${String.fromCharCode(65 + row)}${col + 1}`;
 
@@ -57,6 +58,19 @@ export const bookSeats = async (req, res) => {
         throw err;
       }
 
+      // Require that the requester holds an active lock for all the seats
+      const myLock = await SeatLock.findOne({
+        user: req.user._id,
+        show: showId,
+        seats: { $all: seats },
+        expiresAt: { $gt: now }
+      }).session(session);
+      if (!myLock) {
+        const err = new Error('Seat lock missing or expired');
+        err.statusCode = 400;
+        throw err;
+      }
+
       // Add seats to bookedSet atomically
       const updated = await Show.updateOne(
         { _id: showId, bookedSeats: { $nin: seats } },
@@ -72,10 +86,15 @@ export const bookSeats = async (req, res) => {
         { user: req.user._id, show: showId, seats, amount, status: 'CONFIRMED', paymentId }
       ], { session });
 
-      // Remove user's locks for these seats
-      await SeatLock.deleteMany({ user: req.user._id, show: showId, seats: { $in: seats } }).session(session);
+      // Generate a human-friendly ticket code derived from the booking id
+      const b = booking[0];
+      b.ticketCode = `CBZ-${String(b._id).slice(-6).toUpperCase()}`;
+      await b.save({ session });
 
-      res.status(201).json(booking[0]);
+      // Remove user's locks for these seats
+      await SeatLock.deleteMany({ _id: myLock._id }).session(session);
+
+      res.status(201).json(b);
     });
   } catch (e) {
     const status = e.statusCode || 500;
@@ -103,4 +122,30 @@ export const cancelBooking = async (req, res) => {
   await booking.save();
   // Business: we do NOT free booked seats on cancel; depends on policy
   res.json({ message: 'Cancelled' });
+};
+
+export const getTicket = async (req, res) => {
+  const booking = await Booking.findOne({ _id: req.params.id, user: req.user._id }).populate({ path: 'show', populate: ['movie', 'theater'] });
+  if (!booking) return res.status(404).json({ message: 'Booking not found' });
+  const payload = {
+    id: booking._id,
+    code: booking.ticketCode || `CBZ-${String(booking._id).slice(-6).toUpperCase()}`,
+    seats: booking.seats,
+    amount: booking.amount,
+    status: booking.status,
+    paymentId: booking.paymentId,
+    bookedAt: booking.createdAt,
+    movie: booking.show?.movie?.title,
+    theater: booking.show?.theater?.name,
+    location: booking.show?.theater?.location,
+    date: booking.show?.date,
+    time: booking.show?.time
+  };
+  const text = JSON.stringify({ v: 1, t: payload });
+  try {
+    const qr = await QRCode.toDataURL(text, { errorCorrectionLevel: 'M', width: 320, margin: 1 });
+    return res.json({ ticket: payload, qrDataUrl: qr });
+  } catch {
+    return res.json({ ticket: payload, qrDataUrl: null });
+  }
 };

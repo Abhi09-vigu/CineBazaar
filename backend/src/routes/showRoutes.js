@@ -8,7 +8,8 @@ const router = Router();
 router.get('/', listShows);
 router.get('/:id', getShow);
 
-router.post('/', auth, requireRole('ADMIN'), [
+// Allow both ADMIN and OWNER to create shows
+router.post('/', auth, requireRole('ADMIN', 'OWNER'), [
   body('movie').isMongoId(),
   body('theater').isMongoId(),
   body('date').isISO8601(),
@@ -16,7 +17,7 @@ router.post('/', auth, requireRole('ADMIN'), [
   body('seatPrice').isFloat({ min: 0 })
 ], createShow);
 
-router.put('/:id', auth, requireRole('ADMIN'), updateShow);
-router.delete('/:id', auth, requireRole('ADMIN'), deleteShow);
+router.put('/:id', auth, requireRole('ADMIN', 'OWNER'), updateShow);
+router.delete('/:id', auth, requireRole('ADMIN', 'OWNER'), deleteShow);
 
 export default router;

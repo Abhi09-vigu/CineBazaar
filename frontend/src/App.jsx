@@ -15,11 +15,16 @@ import Confirmation from './pages/Confirmation.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import AdminLayout from './layouts/AdminLayout.jsx'
 import AdminRoute from './routes/AdminRoute.jsx'
-import AdminDashboard from './pages/admin/Dashboard.jsx'
-import AddMovie from './pages/admin/AddMovie.jsx'
-import ManageMovies from './pages/admin/ManageMovies.jsx'
-import TheatersAdmin from './pages/admin/TheatersAdmin.jsx'
-import ShowsAdmin from './pages/admin/ShowsAdmin.jsx'
+// Admin pages cleaned up; only Owner Approvals remain
+import OwnersAdmin from './pages/admin/OwnersAdmin.jsx'
+import PendingTheaters from './pages/admin/PendingTheaters.jsx'
+import OwnerRoute from './routes/OwnerRoute.jsx'
+import OwnerDashboard from './pages/owner/Dashboard.jsx'
+import RegisterTheater from './pages/owner/RegisterTheater.jsx'
+import OwnerAddMovie from './pages/owner/AddMovie.jsx'
+import OwnerTheaters from './pages/owner/Theaters.jsx'
+import OwnerEditTheater from './pages/owner/EditTheater.jsx'
+import OwnerShows from './pages/owner/Shows.jsx'
 
 const ProtectedRoute = ({ children, role }) => {
   const { user } = useAuth()
@@ -66,16 +71,47 @@ export default function App() {
               </ProtectedRoute>
             } />
 
+            <Route path="/owner" element={
+              <OwnerRoute>
+                <OwnerDashboard />
+              </OwnerRoute>
+            } />
+            <Route path="/owner/theaters/new" element={
+              <OwnerRoute>
+                <RegisterTheater />
+              </OwnerRoute>
+            } />
+            <Route path="/owner/movies/new" element={
+              <OwnerRoute>
+                <OwnerAddMovie />
+              </OwnerRoute>
+            } />
+            <Route path="/owner/theaters" element={
+              <OwnerRoute>
+                <OwnerTheaters />
+              </OwnerRoute>
+            } />
+            <Route path="/owner/theaters/:id/edit" element={
+              <OwnerRoute>
+                <OwnerEditTheater />
+              </OwnerRoute>
+            } />
+            <Route path="/owner/shows" element={
+              <OwnerRoute>
+                <OwnerShows />
+              </OwnerRoute>
+            } />
+
             <Route path="/admin" element={
               <AdminRoute>
                 <AdminLayout />
               </AdminRoute>
             }>
-              <Route index element={<AdminDashboard />} />
-              <Route path="add-movie" element={<AddMovie />} />
-              <Route path="manage-movies" element={<ManageMovies />} />
-              <Route path="theaters" element={<TheatersAdmin />} />
-              <Route path="shows" element={<ShowsAdmin />} />
+                {/* Default Admin view: Owner Approvals */}
+                <Route index element={<OwnersAdmin />} />
+              <Route path="owners" element={<OwnersAdmin />} />
+              <Route path="owners/pending" element={<OwnersAdmin />} />
+              <Route path="theaters/pending" element={<PendingTheaters />} />
             </Route>
           </Routes>
         </AnimatePresence>

@@ -5,9 +5,10 @@ import { useAuth } from '../context/AuthContext.jsx'
 
 export default function Login() {
   const nav = useNavigate()
-  const { login } = useAuth()
+  const { login, loginOwner } = useAuth()
   const [sp] = useSearchParams()
   const adminMode = useMemo(() => sp.get('admin') === '1', [sp])
+  const ownerMode = useMemo(() => sp.get('owner') === '1', [sp])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -18,13 +19,24 @@ export default function Login() {
     setLoading(true)
     setError('')
     try {
-      const res = await login(email, password)
+      if (ownerMode) {
+        await loginOwner(email, password)
+      } else {
+        await login(email, password)
+      }
       // In admin mode, enforce admin role and redirect to /admin
       const stored = localStorage.getItem('user')
       const u = stored ? JSON.parse(stored) : null
       if (adminMode) {
         if (u?.role === 'ADMIN') nav('/admin')
         else setError('Admin access required. Please use an admin account.')
+      } else if (ownerMode) {
+        if (u?.role === 'OWNER') {
+          if (u?.ownerApproved) nav('/owner')
+          else setError('Your owner account is pending admin approval.')
+        } else {
+          setError('Owner access required. Please use an owner account.')
+        }
       } else {
         nav('/')
       }
@@ -37,7 +49,7 @@ export default function Login() {
     <>
       <Navbar />
       <main className="max-w-md mx-auto px-4 py-10">
-        <h1 className="text-2xl font-bold mb-6">{adminMode ? 'Admin Login' : 'Login'}</h1>
+        <h1 className="text-2xl font-bold mb-6">{adminMode ? 'Admin Login' : ownerMode ? 'Owner Login' : 'Login'}</h1>
         <form onSubmit={submit} className="space-y-4">
           {error && <div className="p-3 bg-red-900/40 border border-red-700 rounded text-red-200">{error}</div>}
           <input className="w-full bg-gray-900 rounded p-3" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -53,8 +65,18 @@ export default function Login() {
             <span className="text-gray-600">|</span>
             {adminMode ? (
               <Link to="/login" className="text-accent-400">User login</Link>
+            ) : ownerMode ? (
+              <>
+                <Link to="/login" className="text-accent-400">User login</Link>
+                <span className="text-gray-600">|</span>
+                <Link to="/login?admin=1" className="text-accent-400">Admin login</Link>
+              </>
             ) : (
-              <Link to="/login?admin=1" className="text-accent-400">Admin login</Link>
+              <>
+                <Link to="/login?admin=1" className="text-accent-400">Admin login</Link>
+                <span className="text-gray-600">|</span>
+                <Link to="/login?owner=1" className="text-accent-400">Owner login</Link>
+              </>
             )}
           </div>
         </div>

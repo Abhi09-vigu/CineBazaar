@@ -9,13 +9,17 @@ export const createMovie = async (req, res) => {
     let posterUrl = req.body.posterUrl;
     if (req.file) {
       const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = process.env;
-      // If Cloudinary is not configured, instruct client to use posterUrl fallback
-      if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
-        return res.status(400).json({ message: 'Cloudinary not configured. Provide a posterUrl or configure Cloudinary credentials.' });
+      const cloudinaryConfigured = !!(CLOUDINARY_CLOUD_NAME && CLOUDINARY_API_KEY && CLOUDINARY_API_SECRET);
+      if (cloudinaryConfigured) {
+        const result = await uploadBufferToCloudinary(req.file.buffer, 'cinewave/movies', req.file.mimetype);
+        posterUrl = result.secure_url;
+      } else {
+        // If a file was sent but Cloudinary isn't configured, fall back to posterUrl if provided
+        if (!posterUrl) {
+          return res.status(400).json({ message: 'Poster image is required. Either provide a posterUrl or configure Cloudinary to upload a file.' });
+        }
+        // ignore the uploaded file and continue with posterUrl
       }
-      // Upload image buffer to Cloudinary
-      const result = await uploadBufferToCloudinary(req.file.buffer, 'cinewave/movies', req.file.mimetype);
-      posterUrl = result.secure_url;
     }
     if (!posterUrl) return res.status(400).json({ message: 'Poster image is required (file or URL)' });
     // Normalize types and construct payload safely

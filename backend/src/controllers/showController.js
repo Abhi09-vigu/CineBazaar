@@ -7,6 +7,12 @@ export const createShow = async (req, res) => {
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
   const theater = await Theater.findById(req.body.theater);
   if (!theater) return res.status(404).json({ message: 'Theater not found' });
+  // Only allow show creation for approved theaters
+  if (!theater.approved) return res.status(400).json({ message: 'Theater is not approved' });
+  // Owners can only create shows for their own theater
+  if (req.user?.role === 'OWNER' && String(theater.owner) !== String(req.user._id)) {
+    return res.status(403).json({ message: 'Forbidden: not your theater' });
+  }
   const payload = {
     ...req.body,
     rows: theater.rows,
