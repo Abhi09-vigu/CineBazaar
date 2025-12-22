@@ -19,6 +19,33 @@ const parseOrigins = (value) =>
 // Keep CLIENT_ORIGIN for backwards compatibility.
 const configuredOrigins = parseOrigins(process.env.CLIENT_ORIGINS || process.env.CLIENT_ORIGIN);
 
+const isOriginAllowed = (origin, allowlist) => {
+  if (!origin) return true;
+  if (!Array.isArray(allowlist) || allowlist.length === 0) return true;
+
+  // Exact match first.
+  if (allowlist.includes(origin)) return true;
+
+  // Wildcards: "*" allows all; "*.domain.com" allows any subdomain.
+  if (allowlist.includes('*')) return true;
+
+  let hostname;
+  try {
+    hostname = new URL(origin).hostname;
+  } catch {
+    return false;
+  }
+
+  return allowlist.some((entry) => {
+    if (!entry) return false;
+    if (entry.startsWith('*.')) {
+      const suffix = entry.slice(1); // keep leading dot
+      return hostname.endsWith(suffix);
+    }
+    return false;
+  });
+};
+
 const corsOptions = {
   origin: (origin, callback) => {
     // Allow requests with no Origin header (curl, server-to-server).
@@ -27,7 +54,7 @@ const corsOptions = {
     // If no allowlist is configured, allow all origins (safe when not using cookies).
     if (configuredOrigins.length === 0) return callback(null, true);
 
-    return callback(null, configuredOrigins.includes(origin));
+    return callback(null, isOriginAllowed(origin, configuredOrigins));
   },
   // Frontend uses Authorization: Bearer <token>, not cookies.
   credentials: false,
