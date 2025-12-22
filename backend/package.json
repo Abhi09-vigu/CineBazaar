@@ -6,7 +6,7 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon src/server.js",
-    "start": "nodemon src/server.js",
+    "start": "node src/server.js",
     "lint": "echo 'Add linter if needed'"
   },
   "dependencies": {

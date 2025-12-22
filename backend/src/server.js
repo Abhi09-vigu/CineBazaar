@@ -28,6 +28,20 @@ const start = async () => {
           console.warn('⚠️  Failed to sync Movie indexes:', e?.message || e);
         }
       }
+
+      // In production hosts (Render/Railway/etc.), you MUST bind to exactly process.env.PORT.
+      // Auto-incrementing ports can make the service appear "down" behind the proxy.
+      if (process.env.NODE_ENV === 'production') {
+        app
+          .listen(Number(PORT), () => console.log(`Server running on port ${PORT}`))
+          .on('error', (err) => {
+            console.error('Failed to start server:', err?.message || err);
+            process.exit(1);
+          });
+        return;
+      }
+
+      // Dev convenience: if the default port is taken, try a few higher ports.
       const startServer = (port, attempts = 0) => {
         const server = app.listen(port, () => console.log(`Server running on port ${port}`));
         server.on('error', (err) => {
@@ -41,6 +55,7 @@ const start = async () => {
           }
         });
       };
+
       startServer(Number(PORT));
   } catch (err) {
     console.error('Failed to start server:', err?.message || err);
