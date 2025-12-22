@@ -9,10 +9,35 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({
-  origin: process.env.CLIENT_ORIGIN || '*',
-  credentials: true
-}));
+const parseOrigins = (value) =>
+  String(value || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+// Prefer CLIENT_ORIGINS="https://cine-bazaar.vercel.app,http://localhost:5173"
+// Keep CLIENT_ORIGIN for backwards compatibility.
+const configuredOrigins = parseOrigins(process.env.CLIENT_ORIGINS || process.env.CLIENT_ORIGIN);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no Origin header (curl, server-to-server).
+    if (!origin) return callback(null, true);
+
+    // If no allowlist is configured, allow all origins (safe when not using cookies).
+    if (configuredOrigins.length === 0) return callback(null, true);
+
+    return callback(null, configuredOrigins.includes(origin));
+  },
+  // Frontend uses Authorization: Bearer <token>, not cookies.
+  credentials: false,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 if (process.env.NODE_ENV !== 'test') {

@@ -6,7 +6,7 @@ import { signToken } from '../utils/jwt.js';
 
 export const signup = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) return res.status(400).json({ message: 'Invalid signup data', errors: errors.array() });
   const { name, email, password } = req.body;
   const existing = await User.findOne({ email });
   if (existing) return res.status(409).json({ message: 'Email already in use' });
@@ -20,7 +20,7 @@ export const signup = async (req, res) => {
 // Owner signup: creates a user with role OWNER
 export const signupOwner = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) return res.status(400).json({ message: 'Invalid signup data', errors: errors.array() });
   const { name, email, password } = req.body;
   const existing = await User.findOne({ email });
   if (existing) return res.status(409).json({ message: 'Email already in use' });
@@ -33,7 +33,7 @@ export const signupOwner = async (req, res) => {
 
 export const login = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) return res.status(400).json({ message: 'Invalid login data', errors: errors.array() });
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (!user) return res.status(401).json({ message: 'Invalid credentials' });
@@ -46,7 +46,7 @@ export const login = async (req, res) => {
 // Owner-only login endpoint: same as login but enforces role
 export const loginOwner = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) return res.status(400).json({ message: 'Invalid login data', errors: errors.array() });
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (!user) return res.status(401).json({ message: 'Invalid credentials' });
@@ -64,7 +64,7 @@ export const me = async (req, res) => {
 
 export const forgotPassword = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) return res.status(400).json({ message: 'Invalid request', errors: errors.array() });
   const { email } = req.body;
   const user = await User.findOne({ email });
   if (!user) return res.status(200).json({ message: 'If that email exists, reset instructions were sent.' });
@@ -80,7 +80,7 @@ export const forgotPassword = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) return res.status(400).json({ message: 'Invalid request', errors: errors.array() });
   const { token, password } = req.body;
   const hashed = crypto.createHash('sha256').update(token).digest('hex');
   const user = await User.findOne({ resetPasswordToken: hashed, resetPasswordExpires: { $gt: new Date() } });
