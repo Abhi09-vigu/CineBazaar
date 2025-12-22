@@ -44,6 +44,15 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
 
+app.get('/', (_req, res) => {
+  res.json({
+    name: 'CineBazaar API',
+    status: 'ok',
+    health: '/health',
+    api: '/api'
+  });
+});
+
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 app.use('/api', router);
 
