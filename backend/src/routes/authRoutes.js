@@ -23,11 +23,21 @@ router.post('/login', [
   body('password').isLength({ min: 6 })
 ], login);
 
+// Helpful response for browsers/health-checks hitting this endpoint with GET.
+// Real authentication uses POST /api/auth/login.
+router.get('/login', (_req, res) => {
+  res.status(200).json({ message: 'Use POST /api/auth/login' });
+});
+
 // Owner-only login
 router.post('/login-owner', [
   body('email').isEmail(),
   body('password').isLength({ min: 6 })
 ], loginOwner);
+
+router.get('/login-owner', (_req, res) => {
+  res.status(200).json({ message: 'Use POST /api/auth/login-owner' });
+});
 
 router.get('/me', auth, me);
 
