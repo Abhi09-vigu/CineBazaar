@@ -2,7 +2,7 @@ import axios from "axios";
 
 const configuredBaseUrl = (import.meta.env.VITE_API_BASE_URL || "").trim();
 const fallbackBaseUrl = import.meta.env.DEV
-  ? "http://localhost:5000/api/auth/login"
+  ? "http://localhost:5000/api"
   : "https://cinebazaar-lhm7.onrender.com/api";
 
 const instance = axios.create({
